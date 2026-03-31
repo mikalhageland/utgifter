@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Utgifter">
+<title>Utgifter</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #1a1a1a;
+    --accent-light: #f0ede8;
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --border: #e8e4df;
+    --text: #1a1a1a;
+    --muted: #9a9590;
+    --success-bg: #d8f3dc;
+    --radius: 14px;
+    --font: 'DM Sans', sans-serif;
+    --font-display: 'DM Serif Display', serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; }
+  .app { width: 100%; max-width: 480px; min-height: 100vh; background: var(--surface); display: flex; flex-direction: column; }
+  .header { padding: 52px 28px 24px; border-bottom: 1px solid var(--border); }
+  .header-label { font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .header h1 { font-family: var(--font-display); font-size: 28px; font-weight: 400; color: var(--text); line-height: 1.2; }
+  .form-body { padding: 28px; flex: 1; display: flex; flex-direction: column; gap: 24px; }
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  .field-label { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .amount-wrap { display: flex; align-items: center; border: 1.5px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--bg); transition: border-color 0.2s; }
+  .amount-wrap:focus-within { border-color: var(--accent); background: var(--surface); }
+  .amount-prefix { padding: 0 0 0 18px; font-size: 22px; font-weight: 300; color: var(--muted); pointer-events: none; line-height: 1; }
+  .amount-input { border: none; background: transparent; font-family: var(--font); font-size: 28px; font-weight: 300; color: var(--text); padding: 16px 18px 16px 8px; width: 100%; outline: none; }
+  .amount-input::placeholder { color: var(--border); }
+  .cats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .cat-btn { padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg); font-family: var(--font); font-size: 13px; font-weight: 400; color: var(--muted); cursor: pointer; text-align: left; transition: all 0.15s; display: flex; align-items: center; gap: 8px; line-height: 1.3; }
+  .cat-btn:hover { border-color: #ccc; color: var(--text); }
+  .cat-btn.active { border-color: var(--accent); background: var(--accent); color: white; }
+  .cat-icon { font-size: 15px; flex-shrink: 0; }
+  .note-input { border: 1.5px solid var(--border); border-radius: var(--radius); background: var(--bg); font-family: var(--font); font-size: 15px; font-weight: 300; color: var(--text); padding: 14px 18px; width: 100%; outline: none; resize: none; transition: border-color 0.2s; min-height: 80px; }
+  .note-input:focus { border-color: var(--accent); background: var(--surface); }
+  .note-input::placeholder { color: var(--border); }
+  .date-display { font-size: 14px; color: var(--muted); font-weight: 400; }
+  .submit-btn { margin: 0 28px 32px; padding: 18px; background: var(--accent); color: white; border: none; border-radius: var(--radius); font-family: var(--font); font-size: 15px; font-weight: 500; letter-spacing: 0.02em; cursor: pointer; transition: opacity 0.2s, transform 0.1s; width: calc(100% - 56px); }
+  .submit-btn:hover { opacity: 0.85; }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { opacity: 0.3; cursor: default; }
+  .confirm { display: none; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 40px 28px; text-align: center; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .confirm-icon { width: 64px; height: 64px; border-radius: 50%; background: var(--success-bg); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 28px; }
+  .confirm h2 { font-family: var(--font-display); font-size: 26px; font-weight: 400; margin-bottom: 8px; }
+  .confirm-sub { font-size: 14px; color: var(--muted); margin-bottom: 6px; }
+  .confirm-amount { font-size: 32px; font-weight: 300; margin: 16px 0 4px; }
+  .confirm-cat { display: inline-block; padding: 4px 14px; background: var(--accent-light); border-radius: 20px; font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 32px; }
+  .new-btn { padding: 16px 40px; background: transparent; border: 1.5px solid var(--accent); border-radius: var(--radius); font-family: var(--font); font-size: 14px; font-weight: 500; color: var(--accent); cursor: pointer; transition: all 0.15s; }
+  .new-btn:hover { background: var(--accent); color: white; }
+  .log-view { display: none; flex-direction: column; flex: 1; }
+  .log-header { padding: 28px 28px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .log-header h2 { font-family: var(--font-display); font-size: 22px; font-weight: 400; }
+  .back-btn { background: none; border: none; font-family: var(--font); font-size: 13px; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .log-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 20px 28px; }
+  .stat { background: var(--bg); border-radius: 10px; padding: 14px 16px; }
+  .stat-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .stat-val { font-size: 20px; font-weight: 300; }
+  .log-list { padding: 0 28px 32px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+  .log-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .log-item-cat { font-size: 18px; width: 32px; text-align: center; flex-shrink: 0; }
+  .log-item-info { flex: 1; min-width: 0; }
+  .log-item-name { font-size: 14px; font-weight: 500; }
+  .log-item-note { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .log-item-right { text-align: right; flex-shrink: 0; }
+  .log-item-amt { font-size: 15px; font-weight: 400; }
+  .log-item-date { font-size: 11px; color: var(--muted); }
+  .empty { text-align: center; color: var(--muted); font-size: 14px; padding: 3rem 0; }
+  .show-log-btn { background: none; border: none; font-family: var(--font); font-size: 13px; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-label">Utgiftslogg</div>
+    <h1>Legg til utgift</h1>
+  </div>
+
+  <div id="formView" style="display:flex;flex-direction:column;flex:1;">
+    <div class="form-body">
+      <div class="field">
+        <div class="field-label">Beløp</div>
+        <div class="amount-wrap">
+          <span class="amount-prefix">kr</span>
+          <input class="amount-input" type="number" inputmode="decimal" id="amount" placeholder="0" />
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Kategori</div>
+        <div class="cats" id="cats"></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Kommentar</div>
+        <textarea class="note-input" id="note" placeholder="Valgfri beskrivelse..."></textarea>
+      </div>
+      <div class="field">
+        <div class="field-label">Dato</div>
+        <div class="date-display" id="dateDisplay"></div>
+      </div>
+    </div>
+    <button class="submit-btn" id="submitBtn" onclick="submitEntry()" disabled>Lagre</button>
+  </div>
+
+  <div class="confirm" id="confirmView">
+    <div class="confirm-icon">✓</div>
+    <h2>Lagret</h2>
+    <div class="confirm-sub" id="confirmDate"></div>
+    <div class="confirm-amount" id="confirmAmount"></div>
+    <div class="confirm-cat" id="confirmCat"></div>
+    <button class="new-btn" onclick="reset()">Ny utgift</button>
+    <button class="show-log-btn" onclick="showLog()">Se alle poster</button>
+  </div>
+
+  <div class="log-view" id="logView">
+    <div class="log-header">
+      <h2>Alle poster</h2>
+      <button class="back-btn" onclick="reset()">Tilbake</button>
+    </div>
+    <div class="log-stats" id="logStats"></div>
+    <div class="log-list" id="logList"></div>
+  </div>
+</div>
+
+<script>
+const CATS = [
+  { id: 'transport', label: 'Transport', icon: '🚌' },
+  { id: 'overnatting', label: 'Overnatting', icon: '🛏' },
+  { id: 'mat', label: 'Mat', icon: '🛒' },
+  { id: 'spise-ute', label: 'Spise ute', icon: '🍽' },
+  { id: 'shopping', label: 'Shopping', icon: '🛍' },
+  { id: 'klar', label: 'Klær', icon: '👕' },
+  { id: 'abonnementer', label: 'Abonnementer', icon: '📱' },
+  { id: 'strom', label: 'Strøm & bo', icon: '🏠' },
+  { id: 'frydenlund', label: 'Frydenlundveien', icon: '🔨' },
+  { id: 'erle', label: 'Erle', icon: '♡' },
+  { id: 'annet', label: 'Annet', icon: '·' },
+];
+
+let selected = null;
+const KEY = 'expenses_v1';
+
+function load() { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { return []; } }
+function save(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch {} }
+
+function formatDate(d) {
+  return new Date(d).toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+
+function init() {
+  document.getElementById('dateDisplay').textContent = formatDate(new Date());
+  const cats = document.getElementById('cats');
+  cats.innerHTML = CATS.map(c => `
+    <button class="cat-btn" id="cat-${c.id}" onclick="selectCat('${c.id}')">
+      <span class="cat-icon">${c.icon}</span>${c.label}
+    </button>
+  `).join('');
+  document.getElementById('amount').addEventListener('input', checkReady);
+}
+
+function selectCat(id) {
+  selected = id;
+  CATS.forEach(c => document.getElementById('cat-' + c.id).classList.toggle('active', c.id === id));
+  checkReady();
+}
+
+function checkReady() {
+  const amt = parseFloat(document.getElementById('amount').value);
+  document.getElementById('submitBtn').disabled = !(amt > 0 && selected);
+}
+
+function submitEntry() {
+  const amt = parseFloat(document.getElementById('amount').value);
+  const note = document.getElementById('note').value.trim();
+  const cat = CATS.find(c => c.id === selected);
+  const now = new Date();
+  const entry = { id: Date.now(), date: now.toISOString(), amount: amt, category: cat.label, icon: cat.icon, note };
+  const all = load(); all.push(entry); save(all);
+  document.getElementById('confirmDate').textContent = formatDate(now);
+  document.getElementById('confirmAmount').textContent = 'kr ' + amt.toLocaleString('nb-NO');
+  document.getElementById('confirmCat').textContent = cat.icon + ' ' + cat.label;
+  document.getElementById('formView').style.display = 'none';
+  document.getElementById('confirmView').style.display = 'flex';
+}
+
+function reset() {
+  selected = null;
+  document.getElementById('amount').value = '';
+  document.getElementById('note').value = '';
+  CATS.forEach(c => document.getElementById('cat-' + c.id).classList.remove('active'));
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('formView').style.display = 'flex';
+  document.getElementById('confirmView').style.display = 'none';
+  document.getElementById('logView').style.display = 'none';
+  document.getElementById('dateDisplay').textContent = formatDate(new Date());
+}
+
+function showLog() {
+  const all = load().sort((a,b) => b.date.localeCompare(a.date));
+  document.getElementById('confirmView').style.display = 'none';
+  document.getElementById('formView').style.display = 'none';
+  const lv = document.getElementById('logView');
+  lv.style.display = 'flex';
+  const total = all.reduce((s,e) => s + e.amount, 0);
+  document.getElementById('logStats').innerHTML = `
+    <div class="stat"><div class="stat-label">Totalt</div><div class="stat-val">kr ${Math.round(total).toLocaleString('nb-NO')}</div></div>
+    <div class="stat"><div class="stat-label">Poster</div><div class="stat-val">${all.length}</div></div>
+  `;
+  if (!all.length) { document.getElementById('logList').innerHTML = '<div class="empty">Ingen poster ennå</div>'; return; }
+  document.getElementById('logList').innerHTML = all.map(e => `
+    <div class="log-item">
+      <div class="log-item-cat">${e.icon || '·'}</div>
+      <div class="log-item-info">
+        <div class="log-item-name">${e.category}</div>
+        ${e.note ? `<div class="log-item-note">${e.note}</div>` : ''}
+      </div>
+      <div class="log-item-right">
+        <div class="log-item-amt">kr ${Math.round(e.amount).toLocaleString('nb-NO')}</div>
+        <div class="log-item-date">${new Date(e.date).toLocaleDateString('nb-NO', {day:'numeric',month:'short'})}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+init();
+</script>
+</body>
+</html>
